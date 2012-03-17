@@ -1,7 +1,13 @@
 module("Link", {
 	setup: function() {
 		$.KnockoutModel('Link', {}, {});
-		Link._apiPrefix = 'http://mokkabonna.dyndns.org:5555/api/';
+		//Link._apiPrefix = 'http://mokkabonna.dyndns.org:5555/api/';
+		$.fixture('/api/links',function() {
+			return [[{Id :1, Text : 'some text'}, {Text : 'yoyo'}]];
+		});
+		$.fixture('/api/links/{id}',function() {
+			return {Id:1, Text:'some text'}
+		});
 	},
 	teardown: function() {
 		delete Link;
@@ -15,6 +21,7 @@ test('Static created', function() {
 asyncTest('Find operations', function() {
 	var id;
 	Link.findAll().done(function(data) {
+		console.log(data)
 		ok($.isArray(data));
 		id = data[0].Id;
 		equal(typeof id, 'function');

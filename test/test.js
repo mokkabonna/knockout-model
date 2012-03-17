@@ -1,7 +1,14 @@
 module("Link", {
 	setup: function() {
-		$.KnockoutModel('Link', {}, {});
-		Link._apiPrefix = 'http://mokkabonna.dyndns.org:5555/api/';
+		$.KnockoutModel('Link', {
+			apiPrefix : 'http://mokkabonna.dyndns.org:5555/api',
+			attributes : {
+				supposedToBeBool : 'boolean',
+				shouldBeNumber : 'number'
+
+
+			}
+		}, {});
 	},
 	teardown: function() {
 		delete Link;
@@ -48,12 +55,19 @@ test('Create model', function() {
 asyncTest('Create new and save and update', function() {
 	
 	var lnk = new Link({Text :'Home'});
-	lnk.Text('ny tekst');
+	lnk.Text('text');
 	equal(lnk.isModified(), true);
 	equal(lnk.Id, undefined);
 	lnk.save().done(function(data) {
-		notEqual(lnk.Id, undefined, 'the existing link has been updated with returned values from the server,');
+		notEqual(lnk.Id, undefined, 'the existing link has been updated with returned values from the server');
 		equal(lnk.isModified(), false,'isModified is set to false');
+
+		var origtext = lnk.Text();
+		lnk.Text('random new text');
+		equal(lnk.isModified(), true,'isModified is set to true');		
+		lnk.Text(origtext);
+		equal(lnk.isModified(), false,'after a save savedstate should be reset and therefore isModified should be false');		
+
 		ok(data.Id !== null && data.Id !== undefined);
 		equal(typeof data.Id, 'function', 'Returned value is observable');
 		start();
@@ -85,3 +99,13 @@ asyncTest('Delete link', function() {
 	});
 
 });
+
+test('Transformation', function() {
+	var link = new Link({
+		supposedToBeBool : 'false',
+		shouldBeNumber : '123'
+	});
+	equal(link.supposedToBeBool(), false);
+	equal(link.shouldBeNumber(), 123);
+})
+

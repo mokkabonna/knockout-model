@@ -107,7 +107,9 @@
 		transformValue: function(value, type) {
 			switch (type) {
 			case 'boolean':
-				return value === 'true' || value === '1';
+				if(value === 'true' || value === '1' || value === 1) return true;
+				if(value === 'false' || value === '0' || value === 0) return false;
+				return value; //If not boolean, return value as is
 				break;
 			case 'number':
 				return parseInt(value, 10);
@@ -137,13 +139,16 @@
 		},
 		updateProperties: function(attributes) {
 			var self = this;
-			$.each(attributes, function(prop, value) {
+			$.each(attributes, function(prop, value) {				
 				//If we are updating the observable with another observable
 				if (typeof self[prop] === 'function' && typeof value === 'function') {
 					self[prop](ko.utils.unwrapObservable(value));
 				}
 				//If we are adding a new observable or updating a simple property that is not observable
-				else if (self[prop] === undefined) {
+				else if(typeof self[prop] === 'function'){
+					self[prop](ko.utils.unwrapObservable(value));
+				}
+				else{
 					self[prop] = value;
 				}
 			});
@@ -182,7 +187,7 @@
 		save: function() {
 			var self = this;
 			var method = this.isNew() ? 'create' : 'update';
-			return this.Class[method](this.toJS(), function(data) {
+			return this.Class[method](this.toJS(), function(data) {				
 				self.Class.updateProperties.call(self, data.toJS());
 				self.savedState = self.toJS();
 				self.isModified(false); //reset modified status after save

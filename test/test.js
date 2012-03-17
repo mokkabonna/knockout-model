@@ -26,7 +26,6 @@ test('Static created', function() {
 asyncTest('Find operations', function() {
 	var id;
 	Link.findAll().done(function(data) {
-		console.log(data)
 		ok($.isArray(data));
 		id = data[0].Id;
 		equal(typeof id, 'function');

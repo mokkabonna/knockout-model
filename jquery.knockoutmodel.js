@@ -160,7 +160,7 @@
 					//Setup a subscription to all the observables, set modified
 					self[property].subscribe(function(newValue) {
 						var originalValue = self.savedState[property];
-						if (originalValue !== undefined) self.isModified(newValue !== originalValue);
+						if (originalValue !== undefined) self.isModified(newValue != originalValue); //Check loosely to make sure number are compared to their string equivalent
 					});
 				}
 			});

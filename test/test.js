@@ -111,5 +111,34 @@ test('Transformation', function() {
 	});
 	equal(link.supposedToBeBool(), false);
 	equal(link.shouldBeNumber(), 123);
-})
+});
 
+
+test('isModified should consider different data types', function() {
+	var link = new Link({
+		somenumber : 123
+	});
+	
+	link.somenumber('123'); //Updated from for instance text input
+	equal(link.isModified(), false, '"123" should be considered the same as 123');	
+});
+
+
+test('Test modified is not reset when 2 or more properties have changed', function() {
+	var link = new Link({
+		somenumber : 123,
+		another :'test'
+	});
+
+	link.somenumber(324);
+	equal(link.isModified(), true, 'should be modified after one property changes');	
+	
+	link.another('anothe rvalue');
+	equal(link.isModified(), true, 'should still be modified');
+
+	link.somenumber(123);
+	equal(link.isModified(), true, 'should still be modified after one property changes back, since the other property is still changed');	
+	
+	link.another('test');
+	equal(link.isModified(), false, 'Now it should be not modified again');
+});

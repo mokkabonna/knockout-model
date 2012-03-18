@@ -137,6 +137,9 @@
 			this.mapping = $.extend({}, this.defaultMapping, this.mapping);
 			return ko.mapping.fromJS(data, this.mapping);
 		},
+		bind :function(type, callback) {
+			$.bind
+		},
 		updateProperties: function(attributes) {
 			var self = this;
 			$.each(attributes, function(prop, value) {				

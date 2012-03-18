@@ -30,6 +30,15 @@
 				error: error
 			}, ajaxOb));
 		},
+		bind = function(eventType, handler) {
+			return $.fn.bind.apply($([this]), arguments);
+		},
+		unbind = function(eventType, handler) {
+			return $.fn.unbind.apply($([this]), arguments);
+		},
+		trigger = function(obj, event, args){
+			$.event.trigger(event, args, obj, true);
+		},
 		ajaxMethods = {
 			create: function(str) {
 				return function(attrs, success, error) {
@@ -137,12 +146,17 @@
 			this.mapping = $.extend({}, this.defaultMapping, this.mapping);
 			return ko.mapping.fromJS(data, this.mapping);
 		},
-		bind :function(type, callback) {
-			$.bind
-		},
+		bind :bind,
+		unbind:unbind,
 		updateProperties: function(attributes) {
 			var self = this;
-			$.each(attributes, function(prop, value) {				
+			$.each(attributes, function(prop, value) {	
+				if(prop == 'Id'){
+					// console.log(self[prop] )
+					// console.log('val')
+					// console.log(value);
+					// console.log('end')
+				}
 				//If we are updating the observable with another observable
 				if (typeof self[prop] === 'function' && typeof value === 'function') {
 					self[prop](ko.utils.unwrapObservable(value));
@@ -151,11 +165,17 @@
 				else if(typeof self[prop] === 'function'){
 					self[prop](ko.utils.unwrapObservable(value));
 				}
-				else{
+				else if(self[prop] === undefined && typeof value === 'function' ){
+					console.log(prop + ' is undefined and value is static')
 					self[prop] = value;
+				}
+				else{
+					console.log(prop + ' is not undefined and value is static')
+					self[prop] = ko.observable(value);	
 				}
 			});
 		},
+
 		listenToModified: function() {
 			var self = this;
 			$.each(self.savedState, function(property, initialValue) {
@@ -203,16 +223,34 @@
 		save: function() {
 			var self = this;
 			var method = this.isNew() ? 'create' : 'update';
-			return this.Class[method](this.toJS(), function(data) {				
+			return this.Class[method](this.toJS(), function(data) {	
 				self.Class.updateProperties.call(self, data.toJS());
 				self.savedState = self.toJS();
 				self.isModified(false); //reset modified status after save
+				self[method + 'd']();
 			});
 		},
 		destroy: function() {
-			return this.Class.destroy(this.toJS())
-		}
+			var self = this;
+			return this.Class.destroy(this.toJS(), function() {
+				self.destroyed();
+			})
+		},
+		bind:bind,
+		unbind:unbind
 
+	});
+
+
+	$.each([
+	"created",
+	"updated",
+	"destroyed"], function( i, funcName ) {
+		$.KnockoutModel.prototype[funcName] = function() {
+			var stub, constructor = this.constructor;
+			trigger(this,funcName);	
+			trigger(constructor,funcName, this);
+		};
 	});
 
 

@@ -160,7 +160,14 @@
 					//Setup a subscription to all the observables, set modified
 					self[property].subscribe(function(newValue) {
 						var originalValue = self.savedState[property];
-						if (originalValue !== undefined) self.isModified(newValue != originalValue); //Check loosely to make sure number are compared to their string equivalent
+						if (originalValue !== undefined){
+							if(newValue != originalValue){
+								self.modifiedProperties.push(property);
+							}
+							else{
+								self.modifiedProperties.remove(property);
+							}
+						}
 					});
 				}
 			});
@@ -170,8 +177,14 @@
 			var self = this;
 			var mappedProperties = this.Class.map(attributes);
 			this.Class.updateProperties.call(this, mappedProperties);
-			this.savedState = this.toJS();
 			this.isModified = ko.observable(false);
+			this.modifiedProperties = ko.observableArray([]);
+
+			this.modifiedProperties.subscribe(function(arr) {
+				 self.isModified(arr.length > 0);
+			});
+
+			this.savedState = this.toJS();
 			this.Class.listenToModified.call(this);
 		},
 		getId: function() {

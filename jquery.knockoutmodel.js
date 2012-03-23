@@ -36,7 +36,7 @@
 		unbind = function(eventType, handler) {
 			return $.fn.unbind.apply($([this]), arguments);
 		},
-		trigger = function(obj, event, args){
+		trigger = function(obj, event, args) {
 			$.event.trigger(event, args, obj, true);
 		},
 		ajaxMethods = {
@@ -106,26 +106,26 @@
 		defaultMapping: {
 			'ignore': ['constructor']
 		},
-		transform : function(data) {
+		transform: function(data) {
 			var self = this;
 			$.each(data, function(property, value) {
-				self.attributes[property] = self.attributes[property] || 'string';				
+				self.attributes[property] = self.attributes[property] || 'string';
 				data[property] = self.transformValue(value, self.attributes[property]);
 			});
 		},
 		transformValue: function(value, type) {
 			switch (type) {
 			case 'boolean':
-				if(value === 'true' || value === '1' || value === 1) return true;
-				if(value === 'false' || value === '0' || value === 0) return false;
+				if (value === 'true' || value === '1' || value === 1) return true;
+				if (value === 'false' || value === '0' || value === 0) return false;
 				return value; //If not boolean, return value as is
 				break;
 			case 'number':
 				return parseInt(value, 10);
-				break; 
+				break;
 			case 'date':
-			 	throw 'date converstion not implemented yet' ;
-			 	break;
+				throw 'date converstion not implemented yet';
+				break;
 			default:
 				return value;
 			}
@@ -142,40 +142,27 @@
 			return this.mapping ? new this(data) : new this(data);
 		},
 		map: function(data) {
+			var self = this;
 			this.transform(data);
 			this.mapping = $.extend({}, this.defaultMapping, this.mapping);
 			return ko.mapping.fromJS(data, this.mapping);
 		},
-		bind :bind,
-		unbind:unbind,
+		bind: bind,
+		unbind: unbind,
 		updateProperties: function(attributes) {
 			var self = this;
-			$.each(attributes, function(prop, value) {	
-				if(prop == 'Id'){
-					// console.log(self[prop] )
-					// console.log('val')
-					// console.log(value);
-					// console.log('end')
-				}
-				//If we are updating the observable with another observable
-				if (typeof self[prop] === 'function' && typeof value === 'function') {
+			$.each(attributes, function(prop, value) {
+				console.log(self.Class.attributes[prop])
+				console.log(prop)
+				console.log('-----------')
+				if (self.Class.attributes[prop] === undefined) return; //Only update properties that is part of the data, not methods etc
+				if (typeof self[prop] === 'function') { //Property is already an observable
 					self[prop](ko.utils.unwrapObservable(value));
-				}
-				//If we are adding a new observable or updating a simple property that is not observable
-				else if(typeof self[prop] === 'function'){
-					self[prop](ko.utils.unwrapObservable(value));
-				}
-				else if(self[prop] === undefined && typeof value === 'function' ){
-					console.log(prop + ' is undefined and value is static')
+				} else {
 					self[prop] = value;
-				}
-				else{
-					console.log(prop + ' is not undefined and value is static')
-					self[prop] = ko.observable(value);	
 				}
 			});
 		},
-
 		listenToModified: function() {
 			var self = this;
 			$.each(self.savedState, function(property, initialValue) {
@@ -183,11 +170,10 @@
 					//Setup a subscription to all the observables, set modified
 					self[property].subscribe(function(newValue) {
 						var originalValue = self.savedState[property];
-						if (originalValue !== undefined){
-							if(newValue != originalValue){
+						if (originalValue !== undefined) {
+							if (newValue != originalValue) {
 								self.modifiedProperties.push(property);
-							}
-							else{
+							} else {
 								self.modifiedProperties.remove(property);
 							}
 						}
@@ -204,7 +190,7 @@
 			this.modifiedProperties = ko.observableArray([]);
 
 			this.modifiedProperties.subscribe(function(arr) {
-				 self.isModified(arr.length > 0);
+				self.isModified(arr.length > 0);
 			});
 
 			this.savedState = this.toJS();
@@ -223,8 +209,8 @@
 		save: function() {
 			var self = this;
 			var method = this.isNew() ? 'create' : 'update';
-			return this.Class[method](this.toJS(), function(data) {	
-				self.Class.updateProperties.call(self, data.toJS());
+			return this.Class[method](this.toJS(), function(data) {
+				self.Class.updateProperties.call(self, data);
 				self.savedState = self.toJS();
 				self.isModified(false); //reset modified status after save
 				self[method + 'd']();
@@ -236,20 +222,17 @@
 				self.destroyed();
 			})
 		},
-		bind:bind,
-		unbind:unbind
+		bind: bind,
+		unbind: unbind
 
 	});
 
 
-	$.each([
-	"created",
-	"updated",
-	"destroyed"], function( i, funcName ) {
+	$.each(["created", "updated", "destroyed"], function(i, funcName) {
 		$.KnockoutModel.prototype[funcName] = function() {
 			var stub, constructor = this.constructor;
-			trigger(this,funcName);	
-			trigger(constructor,funcName, this);
+			trigger(this, funcName);
+			trigger(constructor, funcName, this);
 		};
 	});
 

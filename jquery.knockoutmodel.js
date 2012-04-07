@@ -30,6 +30,7 @@
 				error: error
 			}, ajaxOb));
 		},
+		fn = 'function',
 		bind = function(eventType, handler) {
 			return $.fn.bind.apply($([this]), arguments);
 		},
@@ -42,12 +43,12 @@
 		ajaxMethods = {
 			create: function(str) {
 				return function(attrs, success, error) {
-					return ajax(str || this._serviceUrl, attrs, success, error, 'post', 'json ' + this._shortName + '.model');
+					return ajax(str || this._serviceUrl, attrs, success, error, 'post');
 				};
 			},
 			update: function(str) {
 				return function(attrs, success, error) {
-					return ajax(str || this._serviceUrl + "/{" + this.id + "}", attrs, success, error, "put", 'json ' + this._shortName + '.model')
+					return ajax(str || this._serviceUrl + "/{" + this.id + "}", attrs, success, error, "put")
 				}
 			},
 			destroy: function(str) {
@@ -85,7 +86,7 @@
 
 			$.each(ajaxMethods, function(name, method) {
 				var prop = self[name];
-				if (typeof prop !== 'function') {
+				if (typeof prop !== fn) {
 					self[name] = method(prop);
 				}
 			});
@@ -124,7 +125,16 @@
 				return parseInt(value, 10);
 				break;
 			case 'date':
-				throw 'date converstion not implemented yet';
+				var valueType = typeof value;
+				if(valueType === 'string' && value.match(/\/Date\((-?\d+)\)\//)){
+					return new Date(parseInt(value.substr(6)));
+				} else if ( valueType === "string" ) {
+					return isNaN(Date.parse(value)) ? null : Date.parse(value)
+				} else if ( valueType === 'number' ) {
+					return new Date(value)
+				} else {
+					return value
+				}
 				break;
 			default:
 				return value;
@@ -152,21 +162,19 @@
 		updateProperties: function(attributes) {
 			var self = this;
 			$.each(attributes, function(prop, value) {
-				console.log(self.Class.attributes[prop])
-				console.log(prop)
-				console.log('-----------')
-				if (self.Class.attributes[prop] === undefined) return; //Only update properties that is part of the data, not methods etc
-				if (typeof self[prop] === 'function') { //Property is already an observable
-					self[prop](ko.utils.unwrapObservable(value));
-				} else {
-					self[prop] = value;
+				if (self.Class.attributes[prop] !== undefined || prop !== '__ko_mapping__') { //Only update properties that is part of the data, not methods etc
+					if (typeof self[prop] === fn) { //Property is already an observable
+						self[prop](ko.utils.unwrapObservable(value));
+					} else {
+						self[prop] = value;
+					}
 				}
 			});
 		},
 		listenToModified: function() {
 			var self = this;
 			$.each(self.savedState, function(property, initialValue) {
-				if (typeof self[property] === 'function') {
+				if (typeof self[property] === fn && typeof self[property].subscribe === fn) {
 					//Setup a subscription to all the observables, set modified
 					self[property].subscribe(function(newValue) {
 						var originalValue = self.savedState[property];
@@ -184,7 +192,9 @@
 	}, {
 		setup: function(attributes) {
 			var self = this;
+
 			var mappedProperties = this.Class.map(attributes);
+
 			this.Class.updateProperties.call(this, mappedProperties);
 			this.isModified = ko.observable(false);
 			this.modifiedProperties = ko.observableArray([]);
@@ -204,16 +214,22 @@
 			return (id === undefined || id === null || id === ''); //if null or undefined
 		},
 		toJS: function() {
-			return ko.mapping.toJS(this);
+			var plain = {},
+				self = this;
+			$.each(this.Class.attributes, function(prop, type) {
+				plain[prop] = ko.utils.unwrapObservable(self[prop]);
+			});
+			return plain;
 		},
 		save: function() {
 			var self = this;
 			var method = this.isNew() ? 'create' : 'update';
 			return this.Class[method](this.toJS(), function(data) {
-				self.Class.updateProperties.call(self, data);
+				var mappedProperties = self.Class.map(data);
+				self.Class.updateProperties.call(self, mappedProperties);
 				self.savedState = self.toJS();
 				self.isModified(false); //reset modified status after save
-				self[method + 'd']();
+				self[method + 'd'](); //trigger updated/created event
 			});
 		},
 		destroy: function() {
@@ -224,7 +240,6 @@
 		},
 		bind: bind,
 		unbind: unbind
-
 	});
 
 

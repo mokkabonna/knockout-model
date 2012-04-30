@@ -98,6 +98,17 @@ This will make the Address property of Person a separate class, with it's own me
 
 This way you can call save on a person's address to only update that if you please.
 
+**Expand**
+
+To expand you model programatically you can add properties and methods to the prototype portion of your class declaration
+
+	$.KnockoutModel('Person', {},{
+		fullName : function(){
+			return this.FirstName() + ' ' + this.LastName();
+		}
+	});
+	
+
 
 Model options
 -------------

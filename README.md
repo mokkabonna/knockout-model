@@ -100,9 +100,12 @@ This way you can call save on a person's address to only update that if you plea
 
 **Expand**
 
-To expand you model programatically you can add properties and methods to the prototype portion of your class declaration
+To expand you model programatically you can add properties and methods to the instance portion of your class declaration
 
-	$.KnockoutModel('Person', {},{
+	$.KnockoutModel('Person', {
+		//static members
+	},{
+		//instance members
 		fullName : function(){
 			return this.FirstName() + ' ' + this.LastName();
 		}

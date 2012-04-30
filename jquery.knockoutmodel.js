@@ -126,7 +126,7 @@
 				break;
 			case 'date':
 				var valueType = typeof value;
-				if(valueType === 'string' && value.match(/\/Date\((-?\d+)\)\//)){
+				if(valueType === 'string' && value.match(/\/Date\((-?\d*(\+\d*|\d*))\)\//)){
 					return new Date(parseInt(value.substr(6)));
 				} else if ( valueType === "string" ) {
 					return isNaN(Date.parse(value)) ? null : Date.parse(value)

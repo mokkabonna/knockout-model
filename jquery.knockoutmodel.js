@@ -102,7 +102,7 @@
 				converters: converters
 			});
 		},
-		id: 'Id',
+		id: 'id',
 		attributes: {},
 		defaultMapping: {
 			'ignore': ['constructor']
@@ -242,7 +242,7 @@
 		unbind: unbind
 	});
 
-
+	//Setup events
 	$.each(["created", "updated", "destroyed"], function(i, funcName) {
 		$.KnockoutModel.prototype[funcName] = function() {
 			var stub, constructor = this.constructor;

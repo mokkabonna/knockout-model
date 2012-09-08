@@ -19,10 +19,9 @@ Dependencies:
 
 Built with ASP.NET Web API in mind, so it assumes some conventions:
 
-- by default all url start with /api
+- by default all urls start with /api
 - urls are made up by the lowercase, pluralized name of the model, Person model => /api/persons
 - Built in conversion of ASP.NET JSON date format  \/Date(1224043200000)\/ 
-- the id of the model defaults to Id
 
 
 **All conventions can however be overridden and you can use it with any server side framework**
@@ -68,11 +67,11 @@ Every instance will have a property *isModified* (observable as well) that will 
 
 By default all properties are observable and part of the main object. However you can define specific mapping options that follow standard knockout mapping standards. 
 
-The following example doesn't make observables of the Id, Created and Updated properties.
+The following example doesn't make observables of the id, Created and Updated properties.
 
 	$.KnockoutModel('Person', {
 	    mapping : {
-	        'copy' : ['Id', 'Created', 'Updated']
+	        'copy' : ['id', 'Created', 'Updated']
 	    }
 	}, {});
 
@@ -80,7 +79,7 @@ If the server returns a model with a childmodel you can also combine models like
 
 	$.KnockoutModel('Address', {
 		mapping : {
-			'copy' : ['Id'] 
+			'copy' : ['id'] 
 		}
 	}, {});
 
@@ -94,7 +93,7 @@ If the server returns a model with a childmodel you can also combine models like
 		}
 	}, {});	
 
-This will make the Address property of Person a separate class, with it's own methods like save, destroy etc. Also on Address, we choose to not make observable of the property Id;
+This will make the Address property of Person a separate class, with it's own methods like save, destroy etc. Also on Address, we choose to not make observable of the property id;
 
 This way you can call save on a person's address to only update that if you please.
 
@@ -122,7 +121,7 @@ Model options
 - update
 - destroy
 
-*These methods are automatically created from the model name and api prefix as shown above, however they can be overridden with a templated string. For instance: update : 'POST /api/persons/{Id}' to use POST instead of PUT for updates.*
+*These methods are automatically created from the model name and api prefix as shown above, however they can be overridden with a templated string. For instance: update : 'POST /api/persons/{id}' to use POST instead of PUT for updates.*
 
 - apiPrefix : '/admin/api'
 	- default : '/api'
